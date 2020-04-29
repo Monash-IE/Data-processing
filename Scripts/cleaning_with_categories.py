@@ -60,9 +60,9 @@ for x in gb.groups:
     dfs[x] = gb.get_group(x)
 
 # Club similar types into broader categories
-dfs["Historic"] = dfs["HISTORIC SITE"].append(dfs["MONUMENT"]).append(dfs["BEACH"]).append(dfs["FARM"]).append(dfs["LAKE"]).append(dfs["VINEYARD"]).append(dfs["ART GALLERY"])
+dfs["Historic"] = dfs["HISTORIC SITE"].append(dfs["MONUMENT"]).append(dfs["BEACH"]).append(dfs["VINEYARD"]).append(dfs["ART GALLERY"])
 dfs["PARKS"] = dfs["BOTANIC GARDENS"].append(dfs["NATIONAL PARK"]).append(dfs["PARK"])
-dfs["SPORTS"] = dfs["SPORT FACILITY"].append(dfs["SPORTS COMPLEX"]).append(dfs["SWIMMING POOL"]).append(dfs["RACECOURSE"]).append(dfs["PLAYGROUND"]).append(dfs["CAMP GROUND"])
+dfs["SPORTS"] = dfs["SPORT FACILITY"].append(dfs["SPORTS COMPLEX"]).append(dfs["SWIMMING POOL"]).append(dfs["RACECOURSE"])
 
 
 # filtering out unwanted categories from the melbourne data
@@ -162,7 +162,7 @@ df_sports["Categories"] = [[df_sports["Municipality"][i], df_sports["Suburb"][i]
                            
     
 # List of sports type that is required
-Sport_categories = ["Netball", "Polo", "Rugby", "Shooting", "Soccer", "Softball", "Swimming", "Table-Tennis", "Tennis", " Volleyball", "Football", "Badminton", "Baseball", "Basketball", "Boxing", "Cricket", "Golf", "Hockey", "Squash", "Snooker", "Handball", "Dancing", "Park"]                                
+Sport_categories = ["Netball", "Polo", "Rugby", "Shooting", "Soccer", "Softball", "Swimming", "Table-Tennis", "Tennis", " Volleyball", "Football", "Badminton", "Baseball", "Basketball", "Boxing", "Cricket", "Golf", "Hockey", "Squash", "Snooker", "Handball", "Dancing"]                                
 # drop na values and reset index
 df_sports.dropna(subset = ["Sports Played"],  inplace = True)
 df_sports.reset_index(inplace = True, drop=True)
@@ -190,6 +190,7 @@ df_sports.drop(index = drop_list, inplace = True)
 df_sports.reset_index(inplace = True, drop=True)
 
 df_sports.drop_duplicates(subset = ["Latitude","Longitude","Place Name"], inplace = True)                 
+df_sports.drop_duplicates(subset = ["Suburb", "Latitude","Longitude"], inplace = True)
 
 # write to file
 df_sports.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Sports.csv", index = False)
@@ -236,23 +237,26 @@ df_tourist.dropna(subset = ["Suburb"], inplace = True)
 
 df_tourist.reset_index(inplace = True, drop=True)
 
-df_tourist["Categories"] = [[df_tourist["Municipality"][i], df_tourist["Suburb"][i]] for i in range(len(df_tourist))]
+df_tourist["Categories"] = [[df_tourist["Municipality"][i], df_tourist["Suburb"][i], "Tourist Site"] for i in range(len(df_tourist))]
 
 
-cat_list = ["Library", "Park", "Zoo", "Museum", "Beach", "Port", "Theatre"]
+cat_list = ["Library", "Park", "Zoo", "Museum", "Port", "Theatre"]
 
 for i in range(len(df_tourist)):
-    df_tourist["Categories"][i] = df_tourist["Categories"][i] + ["Tourist",df_tourist["Feature Type"][i]]
 
     for j in cat_list:
         if j in df_tourist["Place Name"].iloc[i]:
-            df_tourist["Categories"].iloc[i] = list(set(df_tourist["Categories"].iloc[i] + [j]))
+            df_tourist["Categories"].iloc[i] = df_tourist["Categories"].iloc[i].append(j)
+            if (j == "Library") | (j=="Park"):
+                df_tourist["Suburb"][i] = np.nan
+                continue
             
     if "gaol" in df_tourist["Place Name"][i].lower():
       df_tourist["Place Name"][i] = np.nan
         
 # drop duplicates and write to file
 df_tourist.dropna(subset = ["Place Name"], inplace = True)
+df_tourist.dropna(subset = ["Suburb"], inplace = True)
 df_tourist.drop_duplicates(subset = ["Latitude","Longitude","Place Name"], inplace=True)
 df_tourist.reset_index(drop=True, inplace = True)
 df_tourist.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Tourist.csv", index = False)
@@ -293,10 +297,10 @@ dfs["PARKS"].dropna(subset = ["Suburb"], inplace = True)
 
 dfs["PARKS"].reset_index(inplace = True, drop = True)
 
-dfs["PARKS"]["Categories"] = [[dfs["PARKS"]["Municipality"][i], dfs["PARKS"]["Suburb"][i]] for i in range(len(dfs["PARKS"]))]
+dfs["PARKS"]["Categories"] = [[dfs["PARKS"]["Municipality"][i], dfs["PARKS"]["Suburb"][i], "Park"] for i in range(len(dfs["PARKS"]))]
 
                                
-dfs["PARKS"]["Categories"] = [dfs["PARKS"]["Categories"][i] + ["Tourist", "Park"] if dfs["PARKS"]["Feature Type"][i] in ["Botanic Gardens", "National Park"] else dfs["PARKS"]["Categories"][i] + ["Park"] for i in range(len(dfs["PARKS"]))]
+# dfs["PARKS"]["Categories"] = [dfs["PARKS"]["Categories"][i].append("Park") for i in range(len(dfs["PARKS"]))]
 
 # drop out one value
 dfs["PARKS"][(dfs["PARKS"]["Place Name"]=="Piazza Italia") | (dfs["PARKS"]["Place Name"]=="Richmond Football Club")]["Place Name"] = np.nan
@@ -304,12 +308,14 @@ dfs["PARKS"].dropna(subset = ["Place Name"], inplace = True)
 
 # drop duplicates
 dfs["PARKS"].drop_duplicates(subset = ["Latitude", "Longitude", "Place Name"], inplace = True)
+dfs["PARKS"].drop_duplicates(subset = ["Suburb", "Latitude","Longitude"], inplace = True)
+
 dfs["PARKS"].reset_index(drop = True, inplace = True)
 
 # write to file
 dfs["PARKS"].to_csv("/content/drive/My Drive/IE APi/Data/Output files/Nature.csv", index=False)
 
-len(dfs["PARKS"])
+dfs["PARKS"]
 
 # ----------------------------------------------------------- LIBRARY -------------------------------------------------------------------
 
@@ -393,4 +399,3 @@ worship.reset_index(inplace=True, drop = True)
 worship.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Worship.csv", index = False)
 
 worship
-

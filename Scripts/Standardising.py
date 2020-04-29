@@ -27,6 +27,7 @@ sub_list = pd.read_csv("/content/drive/My Drive/IE APi/Data/new_Suburbs_final-2.
 
 nature["Suburb"] = [i.replace("â\xa0Â\xa0","") for i in nature["Suburb"]]
 sports["Suburb"] = [i.replace("â\xa0Â\xa0","") for i in sports["Suburb"]]
+sports["Address"] = [i.replace("Ã¢Â Ã‚Â","") for i in sports["Address"]]
 library["Suburb"] = [i.replace("â\xa0Â\xa0","") for i in library["Suburb"]]
 worship["Suburb"] = [i.replace("â\xa0Â\xa0","") for i in worship["Suburb"]]
 tourist["Suburb"] = [i.replace("â\xa0Â\xa0","") for i in tourist["Suburb"]]
@@ -76,10 +77,12 @@ sports.columns
 
 sports.drop(columns = ["Municipality"], inplace = True)
 sports.rename(columns = {"Municipality Name":"Municipality"}, inplace = True)
+sports.drop_duplicates(subset = ["Suburb", "Categories"], inplace = True)
 sports.reset_index(inplace=True, drop = True)
 for i in range(len(sports)):
       sports["Categories"][i] = literal_eval(sports["Categories"][i])
       sports.loc[i,"Categories"][0] = sports.loc[i,"Municipality"]
+      sports.loc[i,"Categories"][1] = sports.loc[i,"Suburb"]
 
       if sports["Suburb"][i].lower() not in final_subs:
           sports["Suburb"][i] = np.nan
@@ -145,7 +148,8 @@ tourist
 
 tourist["Municipality"] = tourist['Municipality'].str.strip()
 tourist["Suburb"] = tourist['Suburb'].str.strip()
-
+tourist.dropna(subset=["Categories"], inplace = True)
+tourist.reset_index(drop = True, inplace=True)
 
 for i in range(len(tourist)):
     if "city of " in tourist["Municipality"][i].lower():
@@ -165,6 +169,8 @@ tourist.dropna(subset=["Suburb"], inplace = True)
 tourist.reset_index(drop = True, inplace = True)
 
 tourist
+
+tourist.iloc[41]
 
 """### Fix the categories and municipality column for worship"""
 
@@ -237,8 +243,9 @@ library.drop_duplicates(subset = ["Latitude","Longitude"], inplace = True)
 worship.drop_duplicates(subset = ["Latitude","Longitude", "Place Name"], inplace = True)
 
 municipalitiesSubs.to_csv("/content/drive/My Drive/IE APi/Data/Suburbs_of_mel1.csv", index=False)
-sports.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Sports.csv", index=False)
+sports.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Sports.csv", index=False, encoding='utf-8')
 tourist.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Tourist.csv", index=False)
 nature.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Nature.csv", index=False)
 library.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Library.csv", index=False)
 worship.to_csv("/content/drive/My Drive/IE APi/Data/Output files/Worship.csv", index=False)
+
